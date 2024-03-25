@@ -1,0 +1,8 @@
+.npmrc
+node_modules
+*.tgz
+.vscode
+*.pem
+src/index.js
+dist/
+*.env
