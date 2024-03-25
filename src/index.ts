@@ -3,8 +3,49 @@ import { RwgGame } from "@OlliePugh/rwg-game";
 import { Server as SocketServer } from "socket.io";
 import cors from "cors";
 import http from "http";
-
+import { Gpio } from "onoff";
 import { CONTROL_TYPE, RwgConfig } from "@OlliePugh/rwg-game";
+
+let LEFT_WHEEL_FORWARD: Gpio | undefined;
+let LEFT_WHEEL_BACKWARD: Gpio | undefined;
+let RIGHT_WHEEL_FORWARD: Gpio | undefined;
+let RIGHT_WHEEL_BACKWARD: Gpio | undefined;
+try {
+  LEFT_WHEEL_FORWARD = new Gpio(17, "out");
+  LEFT_WHEEL_BACKWARD = new Gpio(22, "out");
+  RIGHT_WHEEL_FORWARD = new Gpio(23, "out");
+  RIGHT_WHEEL_BACKWARD = new Gpio(24, "out");
+} catch (e) {
+  console.warn(
+    "Failed to initialise GPIO pins, are you running on a Raspberry Pi?"
+  );
+}
+
+const forwards = () => {
+  console.log("forwards");
+  LEFT_WHEEL_BACKWARD?.writeSync(0);
+  LEFT_WHEEL_FORWARD?.writeSync(1);
+  RIGHT_WHEEL_BACKWARD?.writeSync(0);
+  RIGHT_WHEEL_FORWARD?.writeSync(1);
+};
+
+const backwards = () => {
+  console.log("backwards");
+  LEFT_WHEEL_BACKWARD?.writeSync(0);
+  LEFT_WHEEL_FORWARD?.writeSync(1);
+  RIGHT_WHEEL_BACKWARD?.writeSync(0);
+  RIGHT_WHEEL_FORWARD?.writeSync(1);
+};
+
+const off = () => {
+  console.log("off");
+  LEFT_WHEEL_BACKWARD?.writeSync(0);
+  LEFT_WHEEL_FORWARD?.writeSync(0);
+  RIGHT_WHEEL_BACKWARD?.writeSync(0);
+  RIGHT_WHEEL_FORWARD?.writeSync(0);
+};
+
+off();
 
 const generateConfig = (): RwgConfig => ({
   id: "smart-vacuum-cleaner",
@@ -47,7 +88,18 @@ const generateConfig = (): RwgConfig => ({
     {
       id: "roomba",
       onControl: (payload) => {
-        console.log(payload);
+        const inputs = Array.isArray(payload) ? payload : [payload];
+        inputs.forEach((input) => {
+          if (input.controlName === "forward-backward") {
+            if (input.value > 0) {
+              forwards();
+            } else if (input.value < 0) {
+              backwards();
+            } else {
+              off();
+            }
+          }
+        });
       },
       stream: {
         address: "stream.ollieq.co.uk",
@@ -73,6 +125,7 @@ const io = new SocketServer(httpServer, {
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const gameServer = new RwgGame(generateConfig(), httpServer, app, io);
 
 const port = process.env.PORT || 80;
