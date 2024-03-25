@@ -31,10 +31,10 @@ const forwards = () => {
 
 const backwards = () => {
   console.log("backwards");
-  LEFT_WHEEL_BACKWARD?.writeSync(0);
-  LEFT_WHEEL_FORWARD?.writeSync(1);
-  RIGHT_WHEEL_BACKWARD?.writeSync(0);
-  RIGHT_WHEEL_FORWARD?.writeSync(1);
+  LEFT_WHEEL_BACKWARD?.writeSync(1);
+  LEFT_WHEEL_FORWARD?.writeSync(0);
+  RIGHT_WHEEL_BACKWARD?.writeSync(1);
+  RIGHT_WHEEL_FORWARD?.writeSync(0);
 };
 
 const off = () => {
