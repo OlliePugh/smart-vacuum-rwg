@@ -3,21 +3,25 @@ import { MATCH_STATE, RWG_EVENT, RwgGame } from "@OlliePugh/rwg-game";
 import { Server as SocketServer } from "socket.io";
 import cors from "cors";
 import http from "http";
-import { Gpio } from "onoff";
 import { CONTROL_TYPE, RwgConfig } from "@OlliePugh/rwg-game";
 
 // move to
 //https://www.npmjs.com/package/raspi-soft-pwm
 
-let LEFT_WHEEL_FORWARD: Gpio | undefined;
-let LEFT_WHEEL_BACKWARD: Gpio | undefined;
-let RIGHT_WHEEL_FORWARD: Gpio | undefined;
-let RIGHT_WHEEL_BACKWARD: Gpio | undefined;
+import { init } from "raspi";
+import { SoftPWM } from "raspi-soft-pwm";
+
+let LEFT_WHEEL_FORWARD: SoftPWM | undefined;
+let LEFT_WHEEL_BACKWARD: SoftPWM | undefined;
+let RIGHT_WHEEL_FORWARD: SoftPWM | undefined;
+let RIGHT_WHEEL_BACKWARD: SoftPWM | undefined;
 try {
-  LEFT_WHEEL_FORWARD = new Gpio(23, "out");
-  LEFT_WHEEL_BACKWARD = new Gpio(24, "out");
-  RIGHT_WHEEL_FORWARD = new Gpio(17, "out");
-  RIGHT_WHEEL_BACKWARD = new Gpio(22, "out");
+  init(() => {
+    LEFT_WHEEL_FORWARD = new SoftPWM("GPIO23");
+    LEFT_WHEEL_BACKWARD = new SoftPWM("GPIO24");
+    RIGHT_WHEEL_FORWARD = new SoftPWM("GPIO17");
+    RIGHT_WHEEL_BACKWARD = new SoftPWM("GPIO22");
+  });
 } catch (e) {
   console.warn(
     "Failed to initialise GPIO pins, are you running on a Raspberry Pi?"
@@ -42,10 +46,10 @@ try {
 
 const off = () => {
   console.log("off");
-  LEFT_WHEEL_BACKWARD?.writeSync(0);
-  LEFT_WHEEL_FORWARD?.writeSync(0);
-  RIGHT_WHEEL_BACKWARD?.writeSync(0);
-  RIGHT_WHEEL_FORWARD?.writeSync(0);
+  LEFT_WHEEL_BACKWARD?.write(0);
+  LEFT_WHEEL_FORWARD?.write(0);
+  RIGHT_WHEEL_BACKWARD?.write(0);
+  RIGHT_WHEEL_FORWARD?.write(0);
 };
 
 // const left = () => {
