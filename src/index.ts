@@ -4,10 +4,6 @@ import { Server as SocketServer } from "socket.io";
 import cors from "cors";
 import http from "http";
 import { CONTROL_TYPE, RwgConfig } from "@OlliePugh/rwg-game";
-
-// move to
-//https://www.npmjs.com/package/raspi-soft-pwm
-
 import { init } from "raspi";
 import { SoftPWM } from "raspi-soft-pwm";
 
@@ -17,32 +13,16 @@ let RIGHT_WHEEL_FORWARD: SoftPWM | undefined;
 let RIGHT_WHEEL_BACKWARD: SoftPWM | undefined;
 try {
   init(() => {
-    LEFT_WHEEL_FORWARD = new SoftPWM("GPIO23");
-    LEFT_WHEEL_BACKWARD = new SoftPWM("GPIO24");
-    RIGHT_WHEEL_FORWARD = new SoftPWM("GPIO17");
-    RIGHT_WHEEL_BACKWARD = new SoftPWM("GPIO22");
+    LEFT_WHEEL_FORWARD = new SoftPWM("GPIO17");
+    LEFT_WHEEL_BACKWARD = new SoftPWM("GPIO22");
+    RIGHT_WHEEL_FORWARD = new SoftPWM("GPIO23");
+    RIGHT_WHEEL_BACKWARD = new SoftPWM("GPIO24");
   });
 } catch (e) {
   console.warn(
     "Failed to initialise GPIO pins, are you running on a Raspberry Pi?"
   );
 }
-
-// const forwards = () => {
-//   console.log("forwards");
-//   LEFT_WHEEL_BACKWARD?.writeSync(0);
-//   LEFT_WHEEL_FORWARD?.writeSync(1);
-//   RIGHT_WHEEL_BACKWARD?.writeSync(0);
-//   RIGHT_WHEEL_FORWARD?.writeSync(1);
-// };
-
-// const backwards = () => {
-//   console.log("backwards");
-//   LEFT_WHEEL_BACKWARD?.writeSync(1);
-//   LEFT_WHEEL_FORWARD?.writeSync(0);
-//   RIGHT_WHEEL_BACKWARD?.writeSync(1);
-//   RIGHT_WHEEL_FORWARD?.writeSync(0);
-// };
 
 const off = () => {
   console.log("off");
@@ -51,22 +31,6 @@ const off = () => {
   RIGHT_WHEEL_BACKWARD?.write(0);
   RIGHT_WHEEL_FORWARD?.write(0);
 };
-
-// const left = () => {
-//   console.log("left");
-//   LEFT_WHEEL_BACKWARD?.writeSync(1);
-//   LEFT_WHEEL_FORWARD?.writeSync(0);
-//   RIGHT_WHEEL_BACKWARD?.writeSync(0);
-//   RIGHT_WHEEL_FORWARD?.writeSync(1);
-// };
-
-// const right = () => {
-//   console.log("left");
-//   LEFT_WHEEL_BACKWARD?.writeSync(0);
-//   LEFT_WHEEL_FORWARD?.writeSync(1);
-//   RIGHT_WHEEL_BACKWARD?.writeSync(1);
-//   RIGHT_WHEEL_FORWARD?.writeSync(0);
-// };
 
 off();
 
@@ -83,7 +47,37 @@ const axis: Inputs = {
 const directionThreshold = 50;
 
 const updateMovement = () => {
-  console.log(axis);
+  // Maximum motor speed
+  const max_speed = 1;
+
+  // Calculate left and right motor speeds based on joystick input
+  let leftMotorSpeed = 0;
+  let rightMotorSpeed = 0;
+
+  // Calculate left and right motor speeds based on joystick input
+  leftMotorSpeed = axis.y + axis.x;
+  rightMotorSpeed = axis.y - axis.x;
+
+  // Ensure motor speeds are within the allowable range
+  leftMotorSpeed = Math.max(-max_speed, Math.min(max_speed, leftMotorSpeed));
+  rightMotorSpeed = Math.max(-max_speed, Math.min(max_speed, rightMotorSpeed));
+// TODO it seems like rightMotor speed is incorrect
+  console.log({ leftMotorSpeed, rightMotorSpeed });
+
+  if (leftMotorSpeed >= 0) {
+    LEFT_WHEEL_BACKWARD?.write(0);
+    LEFT_WHEEL_FORWARD?.write(leftMotorSpeed);
+  } else if (leftMotorSpeed < 0) {
+    LEFT_WHEEL_BACKWARD?.write(-leftMotorSpeed);
+    LEFT_WHEEL_FORWARD?.write(0);
+  }
+  if (rightMotorSpeed >= 0) {
+    RIGHT_WHEEL_BACKWARD?.write(0);
+    RIGHT_WHEEL_FORWARD?.write(rightMotorSpeed);
+  } else if (rightMotorSpeed < 0) {
+    RIGHT_WHEEL_BACKWARD?.write(-rightMotorSpeed);
+    RIGHT_WHEEL_FORWARD?.write(0);
+  }
 };
 
 const generateConfig = (): RwgConfig => ({
@@ -135,7 +129,7 @@ const generateConfig = (): RwgConfig => ({
               input.value > directionThreshold ||
               input.value < -directionThreshold
             ) {
-              axis.y = input.value;
+              axis.y = input.value / 100;
             } else {
               axis.y = 0;
             }
@@ -146,7 +140,7 @@ const generateConfig = (): RwgConfig => ({
               input.value > directionThreshold ||
               input.value < -directionThreshold
             ) {
-              axis.x = input.value;
+              axis.x = input.value / 100;
             } else {
               axis.x = 0;
             }
