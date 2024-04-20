@@ -44,7 +44,7 @@ const axis: Inputs = {
   y: 0,
 };
 
-const directionThreshold = 50;
+const directionThreshold = 10;
 
 const updateMovement = () => {
   // Maximum motor speed
@@ -149,7 +149,7 @@ const generateConfig = (): RwgConfig => ({
         });
       },
       stream: {
-        address: "stream.ollieq.co.uk",
+        address: "wss://stream.ollieq.co.uk/ws",
         id: 1,
         port: 8004,
       },
