@@ -11,12 +11,16 @@ let LEFT_WHEEL_FORWARD: SoftPWM | undefined;
 let LEFT_WHEEL_BACKWARD: SoftPWM | undefined;
 let RIGHT_WHEEL_FORWARD: SoftPWM | undefined;
 let RIGHT_WHEEL_BACKWARD: SoftPWM | undefined;
+let SWEEPER: SoftPWM | undefined;
+let SUCTION: SoftPWM | undefined;
 try {
   init(() => {
     LEFT_WHEEL_FORWARD = new SoftPWM("GPIO17");
     LEFT_WHEEL_BACKWARD = new SoftPWM("GPIO22");
     RIGHT_WHEEL_FORWARD = new SoftPWM("GPIO23");
     RIGHT_WHEEL_BACKWARD = new SoftPWM("GPIO24");
+    SWEEPER = new SoftPWM("GPIO25");
+    SUCTION = new SoftPWM("GPIO8");
   });
 } catch (e) {
   console.warn(
@@ -30,6 +34,8 @@ const off = () => {
   LEFT_WHEEL_FORWARD?.write(0);
   RIGHT_WHEEL_BACKWARD?.write(0);
   RIGHT_WHEEL_FORWARD?.write(0);
+  SWEEPER?.write(0);
+  SUCTION?.write(0);
 };
 
 off();
@@ -61,7 +67,7 @@ const updateMovement = () => {
   // Ensure motor speeds are within the allowable range
   leftMotorSpeed = Math.max(-max_speed, Math.min(max_speed, leftMotorSpeed));
   rightMotorSpeed = Math.max(-max_speed, Math.min(max_speed, rightMotorSpeed));
-// TODO it seems like rightMotor speed is incorrect
+  // TODO it seems like rightMotor speed is incorrect
   console.log({ leftMotorSpeed, rightMotorSpeed });
 
   if (leftMotorSpeed >= 0) {
@@ -175,8 +181,16 @@ const io = new SocketServer(httpServer, {
 const gameServer = new RwgGame(generateConfig(), httpServer, app, io);
 
 gameServer.on(RWG_EVENT.MATCH_STATE_CHANGE, (state) => {
-  if (state === MATCH_STATE.COMPLETED) {
-    off();
+  switch (state) {
+    case MATCH_STATE.COMPLETED:
+      off();
+      break;
+    case MATCH_STATE.IN_MATCH:
+      SWEEPER?.write(1);
+      SUCTION?.write(1);
+      break;
+    default:
+      break;
   }
 });
 
