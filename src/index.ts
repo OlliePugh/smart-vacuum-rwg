@@ -95,14 +95,14 @@ const generateConfig = (): RwgConfig => ({
   // timeLimit: 60,
   userInterface: [
     {
-      id: "control-joystick",
+      id: "y-joystick",
       type: CONTROL_TYPE.JOYSTICK,
       control: [
         {
-          id: "left-right",
+          id: "not-used-1",
           inputMap: [
-            { keyCodes: ["KeyD", "ArrowRight"], weight: 100 },
-            { keyCodes: ["KeyA", "ArrowLeft"], weight: -100 },
+            { keyCodes: [], weight: 0 },
+            { keyCodes: [], weight: 0 },
           ],
         },
         {
@@ -115,7 +115,34 @@ const generateConfig = (): RwgConfig => ({
       ],
       rateLimit: 10,
       position: {
-        x: 0.5,
+        x: 0.2,
+        y: 0.8,
+      },
+      displayOnDesktop: true,
+      size: 0.5,
+    },
+    {
+      id: "x-joystick",
+      type: CONTROL_TYPE.JOYSTICK,
+      control: [
+        {
+          id: "left-right",
+          inputMap: [
+            { keyCodes: ["KeyD", "ArrowRight"], weight: 100 },
+            { keyCodes: ["KeyA", "ArrowLeft"], weight: -100 },
+          ],
+        },
+        {
+          id: "not-used-2",
+          inputMap: [
+            { keyCodes: [], weight: 0 },
+            { keyCodes: [], weight: 0 },
+          ],
+        },
+      ],
+      rateLimit: 10,
+      position: {
+        x: 0.8,
         y: 0.8,
       },
       displayOnDesktop: true,
@@ -129,7 +156,6 @@ const generateConfig = (): RwgConfig => ({
       onControl: (payload) => {
         const inputs = Array.isArray(payload) ? payload : [payload];
         inputs.forEach((input) => {
-          console.log(input);
           if (input.controlName === "forward-backward") {
             if (
               input.value > directionThreshold ||

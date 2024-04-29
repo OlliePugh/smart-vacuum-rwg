@@ -24,7 +24,6 @@
         "dotenv": "^16.3.1",
         "ejs": "^3.1.9",
         "express": "^4.18.2",
-        "node-libcamera": "^1.0.6",
         "nodemon": "^3.0.1",
         "raspi-soft-pwm": "^6.0.2",
         "serialport": "^10.5.0",
