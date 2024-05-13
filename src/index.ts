@@ -67,8 +67,6 @@ const updateMovement = () => {
   // Ensure motor speeds are within the allowable range
   leftMotorSpeed = Math.max(-max_speed, Math.min(max_speed, leftMotorSpeed));
   rightMotorSpeed = Math.max(-max_speed, Math.min(max_speed, rightMotorSpeed));
-  // TODO it seems like rightMotor speed is incorrect
-  console.log({ leftMotorSpeed, rightMotorSpeed });
 
   if (leftMotorSpeed >= 0) {
     LEFT_WHEEL_BACKWARD?.write(0);
@@ -148,6 +146,49 @@ const generateConfig = (): RwgConfig => ({
       displayOnDesktop: true,
       size: 0.5,
     },
+    {
+      id: "qr-button",
+      type: CONTROL_TYPE.BUTTON,
+      control: {
+        id: "qr-button",
+        inputMap: [{ keyCodes: ["KeyE"], weight: 1 }],
+      },
+      rateLimit: 10,
+      position: {
+        x: 0.8,
+        y: 0.4,
+      },
+      displayOnDesktop: true,
+      size: 0.5,
+      message: " Capture QR Code (E)",
+    },
+    {
+      id: "x-joystick",
+      type: CONTROL_TYPE.JOYSTICK,
+      control: [
+        {
+          id: "left-right",
+          inputMap: [
+            { keyCodes: ["KeyD", "ArrowRight"], weight: 100 },
+            { keyCodes: ["KeyA", "ArrowLeft"], weight: -100 },
+          ],
+        },
+        {
+          id: "not-used-2",
+          inputMap: [
+            { keyCodes: [], weight: 0 },
+            { keyCodes: [], weight: 0 },
+          ],
+        },
+      ],
+      rateLimit: 10,
+      position: {
+        x: 0.8,
+        y: 0.8,
+      },
+      displayOnDesktop: true,
+      size: 0.5,
+    },
   ],
   countdownSeconds: 0,
   controllables: [
@@ -176,6 +217,10 @@ const generateConfig = (): RwgConfig => ({
             } else {
               axis.x = 0;
             }
+          }
+
+          if (input.controlName === "qr-button" && input.value) {
+            console.log("take a screenshot or something idk");
           }
           updateMovement();
         });
