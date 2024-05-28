@@ -84,6 +84,10 @@ const updateMovement = () => {
   }
 };
 
+const onQrCodeScan = (qrValue: string | null) => {
+  console.log(qrValue);
+};
+
 const generateConfig = (): RwgConfig => ({
   id: "smart-vacuum-cleaner",
   queueServer: "https://queue.ollieq.co.uk",
@@ -220,7 +224,9 @@ const generateConfig = (): RwgConfig => ({
           }
 
           if (input.controlName === "qr-button" && input.value) {
-            console.log("take a screenshot or something idk");
+            fetch("http://192.168.1.85:3333/")
+              .then(async (result) => onQrCodeScan(await result.text()))
+              .catch(() => console.log("failed to scan QR code"));
           }
           updateMovement();
         });
