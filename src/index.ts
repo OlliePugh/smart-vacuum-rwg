@@ -1,5 +1,10 @@
 import express from "express";
-import { MATCH_STATE, RWG_EVENT, RwgGame } from "@OlliePugh/rwg-game";
+import {
+  ELEMENT_TYPE,
+  MATCH_STATE,
+  RWG_EVENT,
+  RwgGame,
+} from "@OlliePugh/rwg-game";
 import { Server as SocketServer } from "socket.io";
 import cors from "cors";
 import http from "http";
@@ -94,7 +99,7 @@ const generateConfig = (): RwgConfig => ({
   description: "Control a robot vacuum cleaner to clean up the room!",
   name: "Robot Vacuum Cleaner",
   authenticationRequired: false,
-  // timeLimit: 60,
+  timeLimit: 60,
   userInterface: [
     {
       id: "y-joystick",
@@ -192,6 +197,18 @@ const generateConfig = (): RwgConfig => ({
       },
       displayOnDesktop: true,
       size: 0.5,
+    },
+    {
+      id: "countdown",
+      type: ELEMENT_TYPE.COUNTDOWN,
+      position: {
+        x: 0.9,
+        y: 0.1,
+      },
+      anchor: "topRight",
+      size: 1,
+      displayOnDesktop: true,
+      color: "white",
     },
   ],
   countdownSeconds: 0,
