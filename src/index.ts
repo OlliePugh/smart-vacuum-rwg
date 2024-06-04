@@ -2,6 +2,7 @@ import express from "express";
 import {
   ELEMENT_TYPE,
   MATCH_STATE,
+  Player,
   RWG_EVENT,
   RwgGame,
 } from "@OlliePugh/rwg-game";
@@ -11,6 +12,8 @@ import http from "http";
 import { CONTROL_TYPE, RwgConfig } from "@OlliePugh/rwg-game";
 import { init } from "raspi";
 import { SoftPWM } from "raspi-soft-pwm";
+import { fork } from "child_process";
+import { States } from "./led";
 
 let LEFT_WHEEL_FORWARD: SoftPWM | undefined;
 let LEFT_WHEEL_BACKWARD: SoftPWM | undefined;
@@ -33,6 +36,8 @@ try {
   );
 }
 
+const leds = fork("dist/led.js");
+
 const off = () => {
   console.log("off");
   LEFT_WHEEL_BACKWARD?.write(0);
@@ -44,6 +49,8 @@ const off = () => {
 };
 
 off();
+
+const collected = new Set<number>();
 
 interface Inputs {
   x: number;
@@ -89,7 +96,26 @@ const updateMovement = () => {
   }
 };
 
-const onQrCodeScan = (qrValue: string | null) => {
+const onQrCodeScan = (qrValue: string | null, player: Player) => {
+  const id = Number(qrValue);
+  if (isNaN(id)) {
+    return;
+  }
+
+  const alreadyCollected = collected.has(id);
+
+  if (alreadyCollected) {
+    return;
+  }
+
+  collected.add(id);
+  player.updateUserInterface({
+    "amount-left-text": {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      message: `You have collected ${collected.size} items`,
+    },
+  });
   console.log(qrValue);
 };
 
@@ -156,22 +182,6 @@ const generateConfig = (): RwgConfig => ({
       size: 0.5,
     },
     {
-      id: "qr-button",
-      type: CONTROL_TYPE.BUTTON,
-      control: {
-        id: "qr-button",
-        inputMap: [{ keyCodes: ["KeyE"], weight: 1 }],
-      },
-      rateLimit: 10,
-      position: {
-        x: 0.8,
-        y: 0.4,
-      },
-      displayOnDesktop: true,
-      size: 0.5,
-      message: " Capture QR Code (E)",
-    },
-    {
       id: "x-joystick",
       type: CONTROL_TYPE.JOYSTICK,
       control: [
@@ -206,16 +216,47 @@ const generateConfig = (): RwgConfig => ({
         y: 0.1,
       },
       anchor: "topRight",
+      shadow: true,
       size: 1,
       displayOnDesktop: true,
       color: "white",
     },
+    {
+      id: "qr-button",
+      type: CONTROL_TYPE.BUTTON,
+      control: {
+        id: "qr-button",
+        inputMap: [{ keyCodes: ["KeyE"], weight: 1 }],
+      },
+      rateLimit: 10,
+      position: {
+        x: 0.8,
+        y: 0.4,
+      },
+      displayOnDesktop: true,
+      size: 0.5,
+      message: "Capture QR Code (E)",
+    },
+    {
+      id: "amount-left-text",
+      type: ELEMENT_TYPE.TEXT,
+      anchor: "topCenter",
+      position: {
+        x: 0.5,
+        y: 0.1,
+      },
+      displayOnDesktop: true,
+      size: 0.5,
+      color: "white",
+      shadow: true,
+      message: "You have collected 0 items",
+    },
   ],
-  countdownSeconds: 0,
+  countdownSeconds: 3,
   controllables: [
     {
       id: "roomba",
-      onControl: (payload) => {
+      onControl: (payload, { playerId }) => {
         const inputs = Array.isArray(payload) ? payload : [payload];
         inputs.forEach((input) => {
           if (input.controlName === "forward-backward") {
@@ -239,10 +280,14 @@ const generateConfig = (): RwgConfig => ({
               axis.x = 0;
             }
           }
+          const player = gameServer.currentMatch
+            .getPlayers()
+            .find((p) => p.id === playerId)!;
 
           if (input.controlName === "qr-button" && input.value) {
+            leds.send(States.PHOTO);
             fetch("http://192.168.1.85:3333/")
-              .then(async (result) => onQrCodeScan(await result.text()))
+              .then(async (result) => onQrCodeScan(await result.text(), player))
               .catch(() => console.log("failed to scan QR code"));
           }
           updateMovement();
@@ -278,8 +323,14 @@ gameServer.on(RWG_EVENT.MATCH_STATE_CHANGE, (state) => {
   switch (state) {
     case MATCH_STATE.COMPLETED:
       off();
+      leds.send(States.WAITING);
+      collected.clear();
+      break;
+    case MATCH_STATE.COUNTDOWN:
+      leds.send(States.COUNTDOWN);
       break;
     case MATCH_STATE.IN_MATCH:
+      leds.send(States.PLAYING);
       SWEEPER?.write(1);
       SUCTION?.write(1);
       break;
