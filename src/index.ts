@@ -12,7 +12,7 @@ import http from "http";
 import { CONTROL_TYPE, RwgConfig } from "@OlliePugh/rwg-game";
 import { init } from "raspi";
 import { SoftPWM } from "raspi-soft-pwm";
-import { fork } from "child_process";
+import { exec, fork } from "child_process";
 import { States } from "./led";
 
 let LEFT_WHEEL_FORWARD: SoftPWM | undefined;
@@ -37,6 +37,15 @@ try {
 }
 
 const leds = fork("dist/led.js");
+// start stream
+exec("bash ./stream.sh", (err, stdout, stderr) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  console.log(stdout);
+  console.error(stderr);
+});
 
 const off = () => {
   console.log("off");
