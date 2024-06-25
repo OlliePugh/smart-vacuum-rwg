@@ -160,7 +160,7 @@ const generateConfig = (): RwgConfig => ({
         x: 0.2,
         y: 0.8,
       },
-      displayOnDesktop: true,
+      displayOnDesktop: false,
       size: 0.5,
     },
     {
@@ -187,34 +187,7 @@ const generateConfig = (): RwgConfig => ({
         x: 0.8,
         y: 0.8,
       },
-      displayOnDesktop: true,
-      size: 0.5,
-    },
-    {
-      id: "x-joystick",
-      type: CONTROL_TYPE.JOYSTICK,
-      control: [
-        {
-          id: "left-right",
-          inputMap: [
-            { keyCodes: ["KeyD", "ArrowRight"], weight: 100 },
-            { keyCodes: ["KeyA", "ArrowLeft"], weight: -100 },
-          ],
-        },
-        {
-          id: "not-used-2",
-          inputMap: [
-            { keyCodes: [], weight: 0 },
-            { keyCodes: [], weight: 0 },
-          ],
-        },
-      ],
-      rateLimit: 10,
-      position: {
-        x: 0.8,
-        y: 0.8,
-      },
-      displayOnDesktop: true,
+      displayOnDesktop: false,
       size: 0.5,
     },
     {
@@ -295,7 +268,7 @@ const generateConfig = (): RwgConfig => ({
 
           if (input.controlName === "qr-button" && input.value) {
             leds.send(States.PHOTO);
-            fetch("http://192.168.1.85:3333/")
+            fetch("http://192.168.1.187:3333")
               .then(async (result) => onQrCodeScan(await result.text(), player))
               .catch(() => console.log("failed to scan QR code"));
           }
