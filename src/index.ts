@@ -106,7 +106,12 @@ const updateMovement = () => {
 };
 
 const onQrCodeScan = (qrValue: string | null, player: Player) => {
-  const id = Number(qrValue);
+  const parsed = JSON.parse(qrValue ?? "{}")
+
+  const id = Number(parsed?.["spot_id"]);
+  
+  console.log(`User scanned QR code ${id}`);
+
   if (isNaN(id)) {
     return;
   }
@@ -118,6 +123,8 @@ const onQrCodeScan = (qrValue: string | null, player: Player) => {
   }
 
   collected.add(id);
+  
+  console.log(collected);
   player.updateUserInterface({
     "amount-left-text": {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
