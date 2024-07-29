@@ -106,10 +106,10 @@ const updateMovement = () => {
 };
 
 const onQrCodeScan = (qrValue: string | null, player: Player) => {
-  const parsed = JSON.parse(qrValue ?? "{}")
+  const parsed = JSON.parse(qrValue ?? "{}");
 
   const id = Number(parsed?.["spot_id"]);
-  
+
   console.log(`User scanned QR code ${id}`);
 
   if (isNaN(id)) {
@@ -123,7 +123,7 @@ const onQrCodeScan = (qrValue: string | null, player: Player) => {
   }
 
   collected.add(id);
-  
+
   console.log(collected);
   player.updateUserInterface({
     "amount-left-text": {
@@ -227,11 +227,25 @@ const generateConfig = (): RwgConfig => ({
       message: "Capture QR Code (E)",
     },
     {
-      id: "amount-left-text",
+      id: "instruction-text",
       type: ELEMENT_TYPE.TEXT,
       anchor: "topCenter",
       position: {
         x: 0.5,
+        y: 0.1,
+      },
+      displayOnDesktop: true,
+      size: 1,
+      color: "white",
+      shadow: true,
+      message: "Search for QR codes and take\nphotos of them to earn points!",
+    },
+    {
+      id: "amount-left-text",
+      type: ELEMENT_TYPE.TEXT,
+      anchor: "topCenter",
+      position: {
+        x: 0.1,
         y: 0.1,
       },
       displayOnDesktop: true,
